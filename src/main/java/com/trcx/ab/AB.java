@@ -13,6 +13,7 @@ public class AB {
         public static Item SniperRifle;
         public static Item Shotgun;
         public static Item Handgun;
+        public static Item TestGun;
 
         public static class ID {
             public static final String Rifle = "rifle";
@@ -20,6 +21,7 @@ public class AB {
             public static final String SniperRifle = "sniperRifle";
             public static final String Shotgun = "shotgun";
             public static final String Handgun = "handgun";
+            public static final String TestGun = "testgun";
         }
     }
 }

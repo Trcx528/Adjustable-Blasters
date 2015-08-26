@@ -8,10 +8,11 @@ public class Shotgun extends GunBase {
         this.projectileDamage = 3;
         this.projectileLength = 1;
         this.projectileSpeed = 1F;
+        this.projectileAccuracy = 3;
         this.maxClips = 8;
         this.reloadTime = 40;
         this.fireRate = 20;
-        this.triggerStyle = FULL_AUTO;
+        this.triggerStyle = SEMI_AUTO;
         this.projectilesPerRound = 8;
         setDefaults();
     }

@@ -24,12 +24,16 @@ public class Main
         AB.Items.Handgun = new Handgun();
         AB.Items.RocketLauncher = new RocketLauncher();
         AB.Items.SniperRifle = new SniperRifle();
+        AB.Items.TestGun = new TestGun();
 
         GameRegistry.registerItem(AB.Items.Rifle, AB.Items.ID.Rifle);
         GameRegistry.registerItem(AB.Items.Shotgun, AB.Items.ID.Shotgun);
         GameRegistry.registerItem(AB.Items.Handgun, AB.Items.ID.Handgun);
         GameRegistry.registerItem(AB.Items.RocketLauncher, AB.Items.ID.RocketLauncher);
         GameRegistry.registerItem(AB.Items.SniperRifle, AB.Items.ID.SniperRifle);
+        GameRegistry.registerItem(AB.Items.TestGun, AB.Items.ID.TestGun);
+
+
     }
 
     @Mod.EventHandler

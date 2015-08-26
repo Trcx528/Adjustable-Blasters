@@ -1,5 +1,6 @@
 package com.trcx.ab.Items;
 
+import com.trcx.ab.ProjectileBullet;
 import com.trcx.ab.gunData;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.Entity;
@@ -26,7 +27,7 @@ public abstract class GunBase extends Item{
     protected float projectileLength = 2;
     protected float projectileSpeed = 0.5F;
     protected float projectileDamage = 1;
-    protected float projectileAccuracy = 1F;
+    protected int projectileAccuracy = 1;
     protected boolean isDestructive = false;
     protected boolean isExplosive = false;
     protected int clipSize = 5;
@@ -82,20 +83,21 @@ public abstract class GunBase extends Item{
 
     protected void spawnProjectiles(gunData.data gun, EntityPlayer player){
         for (int i=0; i<this.projectilesPerRound; i++){
-            EntityArrow arrow = new EntityArrow(player.worldObj, player, this.projectileSpeed);
-            arrow.canBePickedUp = 2; // do not allow pickups
-            player.worldObj.spawnEntityInWorld(arrow);
+            if (!player.worldObj.isRemote) {
+                ProjectileBullet bullet = new ProjectileBullet(player.worldObj, player, this.projectileDamage, this.projectileRange, this.projectileSpeed, this.projectileLength, this.projectileDiameter, this.projectileAccuracy, this.isDestructive, this.isExplosive);
+                player.worldObj.spawnEntityInWorld(bullet);
+            } else {
+                player.worldObj.spawnEntityInWorld(new EntityArrow(player.worldObj,player,this.projectileSpeed));
+            }
         }
     }
 
     protected void shoot(ItemStack stack, EntityPlayer player){
-        if (!player.worldObj.isRemote) {
-            gunData.data gundata = this.gun.load(stack);
-            if (this.canShoot(stack)) {
-                spawnProjectiles(gundata, player);
-                gundata.setCooldown(this.fireRate);
-                gundata.setRounds(gundata.getRounds() - 1);
-            }
+        gunData.data gundata = this.gun.load(stack);
+        if (this.canShoot(stack)) {
+            spawnProjectiles(gundata, player);
+            gundata.setCooldown(this.fireRate);
+            gundata.setRounds(gundata.getRounds() - 1);
         }
     }
 
@@ -113,7 +115,7 @@ public abstract class GunBase extends Item{
 
     @Override
     public void onUsingTick(ItemStack stack, EntityPlayer player, int count) {
-        if (this.triggerStyle == FULL_AUTO)
+        if (this.triggerStyle == FULL_AUTO || (this.triggerStyle == SEMI_AUTO && count == this.getMaxItemUseDuration(stack)))
             shoot(stack, player);
     }
 
@@ -133,7 +135,6 @@ public abstract class GunBase extends Item{
             gundata.setRounds(this.clipSize);
             gundata.setReloading(false);
             System.out.println("Reloaded...");
-
         }
     }
 
@@ -144,7 +145,11 @@ public abstract class GunBase extends Item{
 
     @Override
     public int getMaxItemUseDuration(ItemStack stack) {
-        return 4;
+        if (this.triggerStyle == SEMI_AUTO) {
+            return 72000;
+        } else {
+            return 4;
+        }
     }
 
     @Override
@@ -154,11 +159,7 @@ public abstract class GunBase extends Item{
 
     @Override
     public ItemStack onItemRightClick(ItemStack stack, World world, EntityPlayer player) {
-        System.out.println("onItemRightClick");
-        if (this.triggerStyle == SEMI_AUTO)
-            shoot(stack, player);
-        else
-            player.setItemInUse(stack, getMaxItemUseDuration(stack));
+        player.setItemInUse(stack, getMaxItemUseDuration(stack));
         return stack;
     }
 
