@@ -3,16 +3,13 @@ package com.trcx.ab.Items;
 import com.trcx.ab.gunData;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.projectile.EntityArrow;
-import net.minecraft.entity.projectile.EntitySnowball;
-import net.minecraft.init.Items;
 import net.minecraft.item.EnumAction;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.world.World;
-import scala.Int;
+import org.lwjgl.Sys;
 
 import java.util.HashMap;
 import java.util.List;
@@ -20,13 +17,18 @@ import java.util.Map;
 
 public abstract class GunBase extends Item{
 
-    protected int projectialsPerShot = 1;
-    protected int projectialRange = 240; // life time in ticks
-    protected float projectialDiameter = 1;
-    protected float projectialLength = 2;
-    protected float projectialSpeed = 0.05F;
-    protected float projectialDamage = 1;
+    public static final int FULL_AUTO = 1;
+    public static final int SEMI_AUTO = 2;
+
+    protected int projectilesPerRound = 1;
+    protected int projectileRange = 240; // life time in ticks
+    protected float projectileDiameter = 1;
+    protected float projectileLength = 2;
+    protected float projectileSpeed = 0.5F;
+    protected float projectileDamage = 1;
+    protected float projectileAccuracy = 1F;
     protected boolean isDestructive = false;
+    protected boolean isExplosive = false;
     protected int clipSize = 5;
     protected int maxClips = 1;
     protected short reloadTime = 4; // in ticks
@@ -34,6 +36,7 @@ public abstract class GunBase extends Item{
     protected int zoomLevels = 0;
     protected int energyPerRound = 5;
     protected int maxEnergy = 2000;
+    protected int triggerStyle = SEMI_AUTO;
     protected gunData gun;
 
     @Override
@@ -52,9 +55,22 @@ public abstract class GunBase extends Item{
         setUnlocalizedName(name);
         setTextureName("AB:" + name);
         setMaxStackSize(1);
+
+        Map<String, Integer> defaults = new HashMap<String, Integer>();
+        this.gun = new gunData(defaults);
     }
 
     public GunBase setDefaults(Map<String, Integer> defaults) {
+        this.gun = new gunData(defaults);
+        return this;
+    }
+
+    public GunBase setDefaults() {
+        Map<String, Integer> defaults = new HashMap<String, Integer>();
+        defaults.put(gunData.nbtRounds, this.clipSize);
+        defaults.put(gunData.nbtClips, this.maxClips);
+        defaults.put(gunData.nbtEnergy, this.maxEnergy);
+        defaults.put(gunData.nbtClips, this.maxClips);
         this.gun = new gunData(defaults);
         return this;
     }
@@ -64,33 +80,41 @@ public abstract class GunBase extends Item{
         return gun.getCooldown() <= 0 && gun.getRounds() > 0;
     }
 
+    protected void spawnProjectiles(gunData.data gun, EntityPlayer player){
+        for (int i=0; i<this.projectilesPerRound; i++){
+            EntityArrow arrow = new EntityArrow(player.worldObj, player, this.projectileSpeed);
+            arrow.canBePickedUp = 2; // do not allow pickups
+            player.worldObj.spawnEntityInWorld(arrow);
+        }
+    }
+
+    protected void shoot(ItemStack stack, EntityPlayer player){
+        if (!player.worldObj.isRemote) {
+            gunData.data gundata = this.gun.load(stack);
+            if (this.canShoot(stack)) {
+                spawnProjectiles(gundata, player);
+                gundata.setCooldown(this.fireRate);
+                gundata.setRounds(gundata.getRounds() - 1);
+            }
+        }
+    }
+
     @Override
     public double getDurabilityForDisplay(ItemStack stack) {
         gunData.data gun = this.gun.load(stack);
-        double retval = 0D;
+        double retval;
         if (gun.getReloading()) {
             retval = (double)(this.reloadTime - gun.getCooldown()) / (double)this.reloadTime;
         } else {
             retval = (double) gun.getRounds() / (double) this.clipSize;
         }
-        //System.out.println(retval);
         return 1D-retval;
     }
 
     @Override
     public void onUsingTick(ItemStack stack, EntityPlayer player, int count) {
-        if (!player.worldObj.isRemote) {
-            System.out.println("Using! " + count);
-            gunData.data gundata = this.gun.load(stack);
-            if (this.canShoot(stack)) {
-                EntityArrow arrow = new EntityArrow(player.worldObj, player, 4f);
-                arrow.setIsCritical(true);
-                arrow.canBePickedUp = 2;
-                player.worldObj.spawnEntityInWorld(arrow);
-                gundata.setCooldown(this.fireRate);
-                gundata.setRounds(gundata.getRounds() - 1);
-            }
-        }
+        if (this.triggerStyle == FULL_AUTO)
+            shoot(stack, player);
     }
 
     @Override
@@ -120,7 +144,7 @@ public abstract class GunBase extends Item{
 
     @Override
     public int getMaxItemUseDuration(ItemStack stack) {
-        return 72000;
+        return 4;
     }
 
     @Override
@@ -131,12 +155,16 @@ public abstract class GunBase extends Item{
     @Override
     public ItemStack onItemRightClick(ItemStack stack, World world, EntityPlayer player) {
         System.out.println("onItemRightClick");
-        player.setItemInUse(stack, getMaxItemUseDuration(stack));
+        if (this.triggerStyle == SEMI_AUTO)
+            shoot(stack, player);
+        else
+            player.setItemInUse(stack, getMaxItemUseDuration(stack));
         return stack;
     }
 
     @Override
-    public void onPlayerStoppedUsing(ItemStack stack, World world, EntityPlayer player, int duration) {
-        super.onPlayerStoppedUsing(stack, world, player, duration);
+    public boolean onItemUse(ItemStack stack, EntityPlayer player, World world, int x, int y, int z, int side, float hitX, float hitY, float hitZ) {
+        System.out.println("onItemUse");
+        return super.onItemUse(stack, player, world, x, y, z, side, hitX, hitY, hitZ);
     }
 }

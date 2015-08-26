@@ -1,6 +1,6 @@
 package com.trcx.ab;
 
-import com.trcx.ab.Items.Rifle;
+import com.trcx.ab.Items.*;
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.Mod.EventHandler;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
@@ -20,8 +20,16 @@ public class Main
     @Mod.EventHandler
     public void preInit(FMLPreInitializationEvent event) throws IOException {
         AB.Items.Rifle = new Rifle();
+        AB.Items.Shotgun = new Shotgun();
+        AB.Items.Handgun = new Handgun();
+        AB.Items.RocketLauncher = new RocketLauncher();
+        AB.Items.SniperRifle = new SniperRifle();
 
         GameRegistry.registerItem(AB.Items.Rifle, AB.Items.ID.Rifle);
+        GameRegistry.registerItem(AB.Items.Shotgun, AB.Items.ID.Shotgun);
+        GameRegistry.registerItem(AB.Items.Handgun, AB.Items.ID.Handgun);
+        GameRegistry.registerItem(AB.Items.RocketLauncher, AB.Items.ID.RocketLauncher);
+        GameRegistry.registerItem(AB.Items.SniperRifle, AB.Items.ID.SniperRifle);
     }
 
     @Mod.EventHandler

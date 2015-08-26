@@ -1,18 +1,16 @@
 package com.trcx.ab.Items;
 
-
-public class Rifle extends GunBase {
-
-    public Rifle (){
-        super("Rifle");
-        this.clipSize = 50;
+public class Handgun extends GunBase{
+    public Handgun(){
+        super("Handgun");
+        this.clipSize = 16;
         this.projectileDamage = 4;
         this.projectileLength = 1;
         this.projectileSpeed = 1F;
         this.maxClips = 4;
         this.reloadTime = 40;
-        this.fireRate = 3;
-        this.triggerStyle = FULL_AUTO;
+        this.fireRate = 2;
+        this.triggerStyle = SEMI_AUTO;
         setDefaults();
     }
 }
